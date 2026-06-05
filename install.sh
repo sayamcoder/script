@@ -24,12 +24,21 @@ if [ ! -t 0 ]; then
   exit 1
 fi
 
-# Custom Intro Banner for Sayam's YouTube Channel
+# Custom Intro Banner for Sayam's YouTube Channel with ASCII Art
 clear
-echo -e "${BLUE}==============================================${NC}"
-echo -e "${GREEN}               SAYAM'S INSTALLER              ${NC}"
-echo -e "${GREEN}         Airlink Panel Auto Installer         ${NC}"
-echo -e "${BLUE}==============================================${NC}"
+echo -e "${GREEN}"
+cat << 'EOF'
+  ███████╗ █████╗  ██╗   ██╗  █████╗  ███╗   ███╗
+  ██╔════╝██╔══██╗ ╚██╗ ██╔╝ ██╔══██╗ ████╗ ████║
+  ███████╗███████║  ╚████╔╝  ███████║ ██╔████╔██║
+  ╚════██║██╔══██║   ╚██╔╝   ██╔══██║ ██║╚██╔╝██║
+  ███████║██║  ██║    ██║    ██║  ██║ ██║ ╚═╝ ██║
+  ╚══════╝╚═╝  ╚═╝    ╚═╝    ╚═╝  ╚═╝ ╚═╝     ╚═╝
+EOF
+echo -e "${NC}"
+echo -e "${BLUE}=======================================================${NC}"
+echo -e "${GREEN}          Airlink Panel & Daemon Auto Installer         ${NC}"
+echo -e "${BLUE}=======================================================${NC}"
 echo ""
 
 # Ensure the script is run as root
@@ -39,12 +48,14 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 show_menu() {
+    echo -e "${BLUE}-------------------------------------------------------${NC}"
     echo -e "${YELLOW}Please select an option:${NC}"
     echo "1) Install Airlink Panel"
     echo "2) Run Panel in Background (PM2)"
     echo "3) Install Airlink Daemon"
     echo "4) Run Daemon in Background (PM2)"
     echo "5) Exit"
+    echo -e "${BLUE}-------------------------------------------------------${NC}"
     echo -n "Enter option [1-5]: "
 }
 
@@ -210,7 +221,7 @@ run_daemon_background() {
         cd /etc/daemon || exit
         
         echo -e "${BLUE}Starting Airlink Daemon using PM2...${NC}"
-        pm2 start dist/app/app.js --name airlink-daemon
+        pm2 start src/app.ts --name airlink-daemon
         
         echo -e "${BLUE}Saving PM2 process configuration and setting up system startup...${NC}"
         pm2 save
