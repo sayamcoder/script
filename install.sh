@@ -37,7 +37,8 @@ install_panel() {
     # Handle existing directory to avoid conflicts
     if [ -d "panel" ]; then
         echo -e "${YELLOW}Warning: /var/www/panel already exists.${NC}"
-        read -p "Do you want to backup and overwrite it? (y/n): " confirm
+        # We redirect input from /dev/tty here to allow user response
+        read -p "Do you want to backup and overwrite it? (y/n): " confirm < /dev/tty
         if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
             mv panel "panel_backup_$(date +%F_%T)"
             echo -e "${GREEN}Existing panel directory backed up.${NC}"
@@ -72,7 +73,8 @@ install_panel() {
 
     echo -e "${YELLOW}You must configure your .env file now.${NC}"
     echo -e "Make sure to set PORT, URL, SESSION_SECRET, and DATABASE_URL."
-    read -p "Press Enter to open .env in nano editor..."
+    # Redirected from /dev/tty
+    read -p "Press Enter to open .env in nano editor..." < /dev/tty
     nano .env
 
     echo -e "\n${BLUE}[5/6] Running database migrations...${NC}"
@@ -118,7 +120,8 @@ run_background() {
 # Main script loop
 while true; do
     show_menu
-    read opt
+    # We redirect input from /dev/tty here to fix the infinite loop issue
+    read -r opt < /dev/tty
     case $opt in
         1)
             install_panel
