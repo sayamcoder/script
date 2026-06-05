@@ -56,7 +56,7 @@ install_panel() {
     # Handle existing directory to avoid conflicts
     if [ -d "panel" ]; then
         echo -e "${YELLOW}Warning: /var/www/panel already exists.${NC}"
-        read -p "Do you want to backup and overwrite it? (y/n): " confirm
+        read -p "Do you want to backup and overwrite it? (y/n): " confirm < /dev/tty
         if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
             mv panel "panel_backup_$(date +%F_%T)"
             echo -e "${GREEN}Existing panel directory backed up.${NC}"
@@ -91,7 +91,7 @@ install_panel() {
 
     echo -e "${YELLOW}You must configure your .env file now.${NC}"
     echo -e "Make sure to set PORT, URL, SESSION_SECRET, and DATABASE_URL."
-    read -p "Press Enter to open .env in nano editor..."
+    read -p "Press Enter to open .env in nano editor..." < /dev/tty
     nano .env
 
     echo -e "\n${BLUE}[5/6] Running database migrations...${NC}"
@@ -140,7 +140,7 @@ install_daemon() {
 
     if [ -d "daemon" ]; then
         echo -e "${YELLOW}Warning: /etc/daemon already exists.${NC}"
-        read -p "Do you want to backup and overwrite it? (y/n): " confirm
+        read -p "Do you want to backup and overwrite it? (y/n): " confirm < /dev/tty
         if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
             mv daemon "daemon_backup_$(date +%F_%T)"
             echo -e "${GREEN}Existing daemon directory backed up.${NC}"
@@ -165,17 +165,27 @@ install_daemon() {
     npm install
 
     echo -e "\n${BLUE}[4/5] Setting up environment configuration...${NC}"
+    # Prepare basic .env file first
     if [ ! -f .env ]; then
         cp example.env .env
-        echo -e "${GREEN}Copied example.env to .env${NC}"
-    else
-        echo -e "${YELLOW}.env file already exists. Skipping copy step.${NC}"
     fi
 
-    echo -e "${YELLOW}You must configure your Daemon .env file now.${NC}"
-    echo -e "Make sure to set PORT (default: 3001) and your node's shared secret KEY."
-    read -p "Press Enter to open .env in nano editor..."
-    nano .env
+    echo -e "${YELLOW}Please enter your Node token for auto-configuration from your Airlink Panel:${NC}"
+    echo -e "Example: ${BLUE}configure -- -- --panel \"http://localhost:3000\" --key \"your-key\"${NC}"
+    echo -n "Paste your token here: "
+    read -r user_token < /dev/tty
+
+    # Trim any outer spaces from pasted token
+    user_token=$(echo "$user_token" | xargs)
+
+    # If the token starts with "configure", replace it with "npm run configure"
+    if [[ "$user_token" == configure* ]]; then
+        user_token="npm run configure ${user_token#configure}"
+    fi
+
+    echo -e "\n${BLUE}Executing configuration command...${NC}"
+    echo -e "${YELLOW}$user_token${NC}"
+    eval "$user_token"
 
     echo -e "\n${BLUE}[5/5] Building Daemon...${NC}"
     npm run build
@@ -217,7 +227,7 @@ run_daemon_background() {
 # Main script loop
 while true; do
     show_menu
-    read -r opt
+    read -r opt < /dev/tty
     case $opt in
         1)
             install_panel
